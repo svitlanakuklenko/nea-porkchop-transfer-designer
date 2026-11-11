@@ -1,0 +1,21 @@
+# Change origin/target here; the code should never need editing to switch them.
+
+origin: iss_leo          # one of the keys under `origins`
+
+origins:                 # NORAD catalog numbers: confirm each on celestrak.org before trusting
+  iss_leo: {catnr: 25544, label: "ISS-like LEO"}
+  sso:     {catnr: 49260, label: "Sun-synchronous (Landsat 9)"}
+  geo:     {catnr: 51850, label: "GEO (GOES-18)"}
+
+target:
+  designation: "TBD"     # pick on Day 1-2 (FRONT_SHEET §5)
+
+window:                  # matches JPL mdesign Mode M parameters so grids line up
+  launch_start_utc: "2027-01-01T00:00:00"
+  launch_span_days: 365
+  tof_min_days: 30
+  tof_max_days: 500
+  step_days: 5           # 5 while developing; 2 for final figures. JPL allows 1,2,5,10,15,20,30
+
+budget:
+  mid_course_allowance_km_s: null   # state a value AND its justification in docs/ASSUMPTIONS.md

@@ -1,0 +1,10 @@
+numpy>=2.0
+scipy>=1.13
+matplotlib>=3.9
+astropy>=6.1
+astroquery>=0.4.10
+requests>=2.32
+pyyaml>=6.0
+pytest>=8.0
+# cross-check only: never imported from src/, only from tests/ or notebooks
+lamberthub>=1.0

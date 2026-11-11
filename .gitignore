@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
+# downloaded data: re-fetched by data_sources, never committed
+data/cache/*
+!data/cache/.gitkeep
+*.bsp
+*.tls
+*.tpc
+.DS_Store
