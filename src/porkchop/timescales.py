@@ -19,18 +19,24 @@ def utc_iso_to_tdb(iso_utc: str) -> Time:
     """'2027-01-01T00:00:00' (UTC) -> astropy Time in the TDB scale.
 
     Hint: build the Time with scale='utc', then convert it. One line.
+    String in, time out; build a time.
     """
-    raise NotImplementedError
+    t = Time(iso_utc, scale = "utc")
+    return t.tdb
+    # Condensed version: return Time(iso_utc, scale = "utc").tdb
 
 
 def mjd_tdb(t: Time) -> float:
-    """Modified Julian Date of `t` in TDB. MJD = JD - 2400000.5 (JPL mdesign's convention)."""
-    raise NotImplementedError
+    """Modified Julian Date of `t` in TDB. MJD = JD - 2400000.5 (JPL mdesign's convention).
+    Time in, float out, read a number off the existing time"""
+    return float(t.tdb.mjd)
 
-
+# two Times in, float out
 def tof_seconds(t_dep: Time, t_arr: Time) -> float:
     """Time of flight in seconds between two instants, measured in TDB.
 
     Positive if t_arr is after t_dep. Make sure this works even if a caller hands you UTC Times.
     """
-    raise NotImplementedError
+    tof = t_arr.tdb - t_dep.tdb
+    return float(tof.sec)
+    
