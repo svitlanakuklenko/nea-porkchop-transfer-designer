@@ -8,7 +8,9 @@ origins:                 # NORAD catalog numbers: confirm each on celestrak.org 
   geo:     {catnr: 51850, label: "GEO (GOES-18)"}
 
 target:
-  designation: "TBD"     # pick on Day 1-2 (FRONT_SHEET §5)
+  designation: "2022 OB5"   # chosen 2026-11-13 over 1989 ML (FRONT_SHEET §5)
+  # JPL best 2027 ballistic option (validation ref, mdesign Id 76):
+  #   launch 2027-01-02, TOF 430 d, C3 1.77, v_inf 1.3 / 0.7 km/s, ~3.96 km/s from LEO
 
 window:                  # matches JPL mdesign Mode M parameters so grids line up
   launch_start_utc: "2027-01-01T00:00:00"
