@@ -10,3 +10,5 @@ data/cache/*
 *.tls
 *.tpc
 .DS_Store
+scratch_*.py
+*.egg-info/
