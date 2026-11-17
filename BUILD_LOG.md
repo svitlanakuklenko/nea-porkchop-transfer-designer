@@ -69,11 +69,47 @@ Dated entries. Each one: what I did, what surprised me, what I'd tell an intervi
 - **OB5's synodic period is ~26 years.** Its window is *now*, which is why Odin (2025) and DS-2 both target it.
 - My hand estimate (4.53 km/s for an idealized 1.2 AU target) was in the right ballpark; real OB5 is lower because its orbit is more Earth-like.
 
-**Interview line:**
+**Notes:**
 "The cheapest target wasn't the best-characterized one. 2022 OB5 costs 3.96 km/s from LEO versus 6.62 for 1989 ML, but it's 3–13 m and spinning every 90 seconds. Accessible doesn't mean exploitable."
 
 **Next:** cache Horizons data (Earth = 399, 2022 OB5), then start Lambert.
 
 ---
 
-## #3 · YYYY-MM-DD · Week 1 wrap (planned after Day 6–7)
+## #3 · 2026-11-16 · Data cached + Lambert solver working
+**Did:**
+- [x] 'fetch_horizons_vectors': JPL Horizons → km, km/s → CSV cache in 'data/cache/' (cache-first: second run is instant)
+- [x] Cached Earth ('399') and 2022 OB5, daily, 2026-12-31 → 2029-06-30 (913 rows each)
+- [x] Stumpff functions C(z), S(z) in 'twobody.py', checked at z = 0, π², ±1e-9
+- [x] 'lambert.solve': Curtis Algorithm 5.2 (universal variables), root found with 'brentq'
+- [x] **4/5 Lambert tests pass**: Curtis 5.2, Vallado 7-5, quarter circle, lamberthub (Izzo) cross-check at heliocentric scale
+- [ ] 'test_propagated_solution_hits_r2': waiting on 'twobody.propagate' (tomorrow)
+
+**Data checks:**
+
+| | Value | Expected | |
+|---|---|---|---|
+| Earth \|r\| on 2026-12-31 | 0.98336 AU | ~0.983 AU (perihelion is early Jan) | ✓ |
+| Earth \|v\| on 2026-12-31 | 30.28 km/s | > 29.78 (faster at perihelion) | ✓ |
+| OB5 min / max distance | 0.97033 / 1.08313 AU | q = 0.96990, Q = 1.08250 | ✓ (see below) |
+
+**Surprised me:**
+- **OB5 goes 0.0006 AU (~94,000 km) past its catalog Q.** SBDB elements are *osculating*: a two-body snapshot at one epoch. Horizons includes planetary perturbations (OB5 passes close to Earth) and a small non-gravitational push. My Lambert arcs are purely two-body, so this is red-team material.
+- **Earth at perihelion is 30.28 km/s, not 29.78.** Kepler's second law, visible in my own cached data.
+- **Vector vs magnitude:** I used 'r1*r2' (vectors) where Curtis means R1R2 (magnitudes). It would have turned A and y into arrays and broken everything silently. Lowercase = vector, capital = magnitude.
+- **Read the grouping:** I wrote 'np.sqrt(mu * t)' for √μ·Δt. Also `t` didn't exist; the parameter is `tof`.
+- ** Retrograde branch was flipped.** No test covers it, so it would have hidden.
+
+**Tooling lessons:**
+- Two copies of 'scratch_fetch.py': I was editing one and running the other. Check the breadcrumb path at the top of the editor.
+- 'NameError: AU_KM' → a file can only use what it imports. VS Vode's **Problems** panel flagged it before I ran anything.
+- 'pip install -e .' makes 'from porkchop... import' work outside pytest. Added 'scratch_*.py' and '*.egg-info/' to '.gitignore'.
+
+**Notes:**
+"I wrote my own Lambert solver from Curtis's universal-variable method, validated it on two textbook cases and a closed-form case, then cross-checked it against Izzo's independent algorithm at heliocentric scale, the regime my porkchop actually runs in."
+
+**Next:** 'twobody.propagate' (Curtis Alg 3.4, reuses Stumpff) → last Lambert test + energy tests → first raw porkchop on the real OB5 grid.
+
+---
+
+## #4 · YYYY-MM-DD · Week 1 wrap (planned after Day 6–7)
