@@ -10,6 +10,23 @@ Either passes the tests. Pick one and write in BUILD_LOG why.
 """
 import numpy as np
 
+# Stumpff helper function C(z)
+def stumpff_c(z: float) -> float:
+    if z > 1e-8:
+        return (1 - np.cos(np.sqrt(z))) / z
+    elif z < -1e-8:
+        return (np.cosh(np.sqrt(-z)) - 1) / (-z)
+    else:
+        return 1/2      # the formulas divide by ~0 here, so use the limit value
+
+# Stumpff helper function S(z)
+def stumpff_s(z: float) -> float:
+    if z > 1e-8:
+        return (np.sqrt(z) - np.sin(np.sqrt(z))) / (np.sqrt(z))**3
+    elif z < -1e-8:
+        return (np.sinh(np.sqrt(-z)) - np.sqrt(-z)) / (-np.sqrt(-z))**3
+    else:
+        return 1/6      # the formulas divide by ~0 here, so use the limit value
 
 def propagate(mu: float, r0: np.ndarray, v0: np.ndarray, dt: float):
     """State after dt seconds. Returns (r, v), km and km/s, shape (3,) each."""
