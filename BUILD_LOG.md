@@ -1,6 +1,6 @@
 # Build log
 
-Dated entries. Each one: what I did, what surprised me, what I'd tell an interviewer.
+Dated entries.
 
 ---
 
@@ -98,7 +98,7 @@ Dated entries. Each one: what I did, what surprised me, what I'd tell an intervi
 - **Earth at perihelion is 30.28 km/s, not 29.78.** Kepler's second law, visible in my own cached data.
 - **Vector vs magnitude:** I used 'r1*r2' (vectors) where Curtis means R1R2 (magnitudes). It would have turned A and y into arrays and broken everything silently. Lowercase = vector, capital = magnitude.
 - **Read the grouping:** I wrote 'np.sqrt(mu * t)' for √μ·Δt. Also `t` didn't exist; the parameter is `tof`.
-- ** Retrograde branch was flipped.** No test covers it, so it would have hidden.
+- **Retrograde branch was flipped.** No test covers it, so it would have hidden.
 
 **Tooling lessons:**
 - Two copies of 'scratch_fetch.py': I was editing one and running the other. Check the breadcrumb path at the top of the editor.

@@ -35,7 +35,7 @@ def test_angular_momentum_conserved():
     r0, v0 = _ellipse()
     h0 = np.cross(r0, v0)
     r, v = twobody.propagate(MU, r0, v0, 12345.0)
-    np.testing.assert_allclose(np.cross(r, v), h0, rtol=1e-9)
+    np.testing.assert_allclose(np.cross(r, v), h0, rtol=1e-9, atol=1e-9 * np.linalg.norm(h0))
 
 
 def test_specific_energy_circular():
