@@ -112,4 +112,55 @@ Dated entries.
 
 ---
 
-## #4 · YYYY-MM-DD · Week 1 wrap (planned after Day 6–7)
+## #4 · 2026-11-17 · Propagator, sweep, first porkchop and a real finding
+
+**Did:**
+- [x] `twobody.propagate`: universal-variable Kepler propagation (Curtis Alg. 3.3 + 3.4), Newton iteration on χ; `specific_energy`
+- [x] **9/9 two-body + Lambert tests pass**, including `test_propagated_solution_hits_r2` (Lambert output really arrives at r₂, checked by an independent method)
+- [x] `sweep.porkchop_grid`: Lambert over a (TOF × launch date) grid; **3/3 sweep tests pass** (shape and index order proven)
+- [x] `state_interpolator`: exact row lookup in the daily cache (no interpolation needed)
+- [x] **First raw porkchop** on real data: 2022 OB5, 2027 launches, TOF 30–500 d, 73 × 95 = 6,935 Lambert solves → `figures/first_porkchop.png`
+
+**Compared with JPL (Small-Body Mission Design, same target and window):**
+
+| Feature | Mine | JPL | |
+|---|---|---|---|
+| Lambert-singularity band edges | TOF ≈ 220 and ≈ 390–400 d | same | ✓ |
+| Sep–Oct pocket (TOF ~330 d) | ~2.5–3 km/s | ~3 km/s | ✓ |
+| Early Jan, TOF 355 d | ~2.5–3 km/s | 2.7 (Id 65) | ✓ |
+| **TOF > ~400 d, incl. JPL's best (Id 76)** | **missing (white)** | **2.1 km/s** | ✗ |
+
+**Diagnosis at JPL Id 76** (launch 2027-01-02, TOF 430 d):
+
+| Solution | v∞ dep | v∞ arr |
+|---|---|---|
+| My solver, 0-rev | 38.5 | 39.2 km/s |
+| Izzo, 1-rev, low path | **1.33** | **0.75** km/s |
+| Izzo, 1-rev, high path | 30.6 | 31.1 km/s |
+| JPL | 1.3 | 0.7 km/s |
+
+→ **JPL's optimum is a one-revolution transfer.** OB5's orbit is ~1 year, so a 430-day trip goes ~420° around the Sun. A zero-rev solver can only find absurd high-energy loops there. NaN count = 0, so the white areas are real but off-scale, not solver failures.
+→ Bonus: my cached ephemeris + Izzo reproduces JPL to ~0.05 km/s, which **validates data, time scales and frames**.
+
+**Decision:** extend my own Lambert solver to 1 revolution (option b) rather than staying zero-rev or calling Izzo from `src/`. Derive it once by hand; in future projects I'd use a library solver (Izzo) and spend the time elsewhere. Costs ~1 day from the buffer → ship ≈ Dec 7.
+
+**Surprised me:**
+- The red-team assumption "zero-revolution Lambert only" hid the best answer *on my actual target*, found on day 4, not day 12.
+- A 1-rev transfer has **two** solutions (Izzo's low / high path), and only one is cheap.
+
+**Python lessons:**
+- `r0*v0` multiplies component by component; the radial speed is `np.dot(r0, v0)`. "The truth value of an array is ambiguous" means a should-be-number is secretly an array; trace back to where it started.
+- `np.abs(vector)` ≠ magnitude; use `np.linalg.norm`. (`np.norm` doesn't exist.)
+- You can't use a variable before the line that creates it (`R` before `r`).
+- **Loop variable vs whole array:** inside the loop use `tof` (one value), not `tof_days` (all 95).
+- **Units per job:** dates in days (`dep + tof`), Lambert in seconds (`tof * SECONDS_PER_DAY`).
+- **Testing:** `rtol` alone can never pass when the expected value is exactly 0; scale `atol` to the vector's magnitude. That test was AI-written; the independent check caught it.
+
+**Notes:**
+"My first porkchop matched JPL's structure but was missing its optimum. I hypothesized multi-revolution transfers, confirmed it against Izzo's solver, which reproduced JPL's best point to 0.05 km/s, and extended my own solver to one revolution."
+
+**Next:** multi-rev extension. z ∈ (4π², 16π²); find the TOF minimum, solve on each side, validate against Izzo `M=1` (both paths); the sweep keeps the cheaper of 0-rev and 1-rev.
+
+---
+
+## #5 · YYYY-MM-DD · Week 1 wrap (planned after Day 6–7)

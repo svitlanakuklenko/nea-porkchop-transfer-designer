@@ -106,4 +106,11 @@ def state_interpolator(jd_tdb: np.ndarray, r: np.ndarray, v: np.ndarray):
     If your grid step is a whole number of days and the cache is daily, you can index exactly
     and skip interpolation entirely. Cheaper, and more correct.
     """
-    raise NotImplementedError
+    jd0 = jd_tdb[0]
+    def state(mjd_tdb):
+        jd = mjd_tdb + 2400000.5            # MJD → JD
+        i = int(round(jd - jd0))            # days since the first row = row index
+        if abs(jd_tdb[i] - jd) > 1e-6:
+            raise ValueError(f"No cached row for MJD {mjd_tdb}")
+        return r[i], v[i]
+    return state
