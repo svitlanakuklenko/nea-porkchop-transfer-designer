@@ -56,8 +56,8 @@ def porkchop_grid(dep_mjd, tof_days, earth_state, target_state, mu: float = MU_S
             r2, v_target = target_state(dep + tof)                       # the asteroid's state at ARRIVAL
             v1, v2 = lambert.solve(mu, r1, r2, tof * SECONDS_PER_DAY)    # TOF in SECONDS
             vinf_dep_vec[i, j] = v1 - v_earth                            # spacecraft velocity minus Earth's
-            vinf_dep[i, j] = np.linalg.norm(vinf_dep_vec[i, j])                 # its magnitude
-            vinf_arr[i, j] = np.linalg.norm(v2 - v_target)                       # |v2 - v_target|
+            vinf_dep[i, j] = np.linalg.norm(vinf_dep_vec[i, j])          # its magnitude
+            vinf_arr[i, j] = np.linalg.norm(v2 - v_target)               # |v2 - v_target|
 
     return {"vinf_dep": vinf_dep, "vinf_arr": vinf_arr,
            "c3": vinf_dep**2, "vinf_dep_vec": vinf_dep_vec}
