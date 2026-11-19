@@ -163,4 +163,51 @@ Dated entries.
 
 ---
 
-## #5 · YYYY-MM-DD · Week 1 wrap (planned after Day 6–7)
+## #5 · 2026-11-18 · One-revolution Lambert: reproduced JPL's best mission
+
+**Did:**
+- [x] **Refactored `lambert.py`** into shared helpers (`_geometry`, `_y`, `_tof_residual`, `_velocities`). All 5 existing tests still pass, so nothing broke.
+- [x] **`solve_multirev`**: one-revolution Lambert from the same Curtis equations; z ∈ (4π², 16π²)
+- [x] **7/7 Lambert tests pass**: the new 1-rev test matches Izzo's low *and* high path; a too-short TOF correctly returns no solutions
+- [x] **Sweep keeps the cheaper of 0-rev and 1-rev** at every grid point; new `n_revs` grid records which won
+- [x] Porkchop now matches JPL's full structure, including the one-rev region above ~420 days
+
+**Result: reproduced JPL's best 2027 mission to 2022 OB5**
+
+| Launch 2027-01-01, TOF 430 d | Mine | JPL | |
+|---|---|---|---|
+| C3 | **1.6509** km²/s² | 1.65 | 0.05% |
+| v∞ dep / arr | 1.285 / 0.782 km/s | 1.3 / 0.8 | ✓ (JPL rounds to 0.1) |
+| v∞ dep + arr | 2.067 km/s | 2.1 | ✓ |
+| Revolutions | 1 | – | |
+| Grid minimum (6,935 points) | this same point | JPL's precomputed best (Id 76) | ✓ |
+
+**How one revolution works:**
+- Zero-rev: z < 4π², flight time rises steadily with z → **one** solution.
+- One-rev: z ∈ (4π², 16π²), flight time → ∞ at both ends with a **minimum** between → a U-shaped curve.
+  - Δt above the bottom of the U → **two** solutions (left side = Izzo's low path, right side = high path)
+  - Δt below it → **none**. In my test geometry the bottom was ~391 days, which is why the missing region started at ~400 days.
+
+**Surprised me:**
+- The same Curtis equations handle one revolution; only the z range and the bracketing change. Izzo's "low / high path" are just the two sides of the U.
+- A refactor felt risky until I realized the existing tests answer "did I break anything?" in 5 seconds.
+
+**Python lessons:**
+- **Refactor under tests:** move code into helpers, rerun the old tests *before* adding anything new.
+- Helpers outside a function can't see its variables; they need them as explicit inputs.
+- `lambda z: ...` turns a many-input function into the one-input form `brentq` and `minimize_scalar` need.
+- `minimize_scalar` returns an object: `.x` = *where* the minimum is, `.fun` = the value there.
+- Imports again: `minimize_scalar` undefined until added to the `from scipy.optimize import ...` line.
+- "Replace" means delete the old lines. Leftover old code *after* new code silently overwrote the 1-rev results.
+- `vinf_dep_vec` holds a vector, `vinf_dep` its magnitude. Don't store one where the other belongs.
+- `zip(a, b)` walks two lists side by side; a running minimum starts at `np.inf`; `NaN < x` is always False, so failed solves skip themselves.
+- `np.unravel_index(np.nanargmin(grid), grid.shape)` → (row, col) of a 2-D minimum.
+
+**Notes:**
+"My porkchop reproduces JPL's best 2027 mission to 2022 OB5, C3 1.651 vs their 1.65. Getting there meant extending my Lambert solver to one-revolution transfers after I found JPL's optimum was a 1-rev trajectory my zero-rev solver couldn't see."
+
+**Next:** Day 5, the parking-orbit layer: departure ΔV from LEO / SSO / GEO and the declination reachability check (`departure.py` stubs + tests are ready). Then the full JPL grid comparison (Figure F3). Ship ≈ Dec 7.
+
+---
+
+## #6 · YYYY-MM-DD · Week 1 wrap (planned after Day 6–7)

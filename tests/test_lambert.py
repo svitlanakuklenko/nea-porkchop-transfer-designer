@@ -53,3 +53,25 @@ def test_cross_check_against_lamberthub_heliocentric():
     v1_ref, v2_ref = lamberthub.izzo2015(mu_sun, r1, r2, tof)
     np.testing.assert_allclose(v1, v1_ref, rtol=1e-6)
     np.testing.assert_allclose(v2, v2_ref, rtol=1e-6)
+
+
+def test_one_rev_matches_izzo_both_paths():
+    lamberthub = pytest.importorskip("lamberthub")
+    mu_sun = 1.32712440041279419e11
+    au = 149597870.7
+    r1 = np.array([1.0 * au, 0.0, 0.0])
+    r2 = au * np.array([0.2, 1.0, 0.02])
+    tof = 430 * 86400.0
+    mine = lambert.solve_multirev(mu_sun, r1, r2, tof, revs=1)
+    assert len(mine) == 2
+    for low in (True, False):
+        v1_ref, v2_ref = lamberthub.izzo2015(mu_sun, r1, r2, tof, M=1, low_path=low)
+        assert any(np.allclose(v1, v1_ref, rtol=1e-6) and np.allclose(v2, v2_ref, rtol=1e-6)
+                   for v1, v2 in mine)
+
+
+def test_one_rev_too_short_returns_nothing():
+    au = 149597870.7
+    r1 = np.array([1.0 * au, 0.0, 0.0])
+    r2 = au * np.array([0.2, 1.0, 0.02])
+    assert lambert.solve_multirev(1.32712440041279419e11, r1, r2, 150 * 86400.0, revs=1) == []

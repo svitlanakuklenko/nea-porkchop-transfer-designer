@@ -33,3 +33,14 @@ for low in (True, False):                   # a 1-rev transfer has two solutions
     print(f"Izzo1-rev (low_path={low}):", np.linalg.norm(v1 - ve), np.linalg.norm(v2 - vt))
 
 print("NaN grid points:", np.isnan(total).sum(), "of", total.size)
+
+i = np.where(tof == 430) [0][0]             # row for TOF = 430 days; finds which row holds 430 days
+j = np.where(dep == 61406)[0][0]            # column for 2027-01-01 (nearest grid date to JPL's 01-02)
+print("At JPL Id 76:", total[i, j], "km/s, revs =", grid["n_revs"][i, j])
+
+# Finds the smallest value while ignoring NaNs, but it reports the position as if the grid were one long list.
+# np.unravel_index converts that back to (row, column); useful whenever you need "where is the minimum" on a 2D grid
+k = np.unravel_index(np.nanargmin(total), total.shape)
+print("Grid minimum:", total[k], "km/s at launch MJD", dep[k[1]],
+      "TOF", tof[k[0]], "d, revs =", grid["n_revs"][k])
+print("C3:", grid["c3"][i, j], "v_inf dep/arr:", grid["vinf_dep"][i, j], grid["vinf_arr"][i, j])

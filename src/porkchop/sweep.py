@@ -41,7 +41,8 @@ def porkchop_grid(dep_mjd, tof_days, earth_state, target_state, mu: float = MU_S
         mu: central-body GM (Sun)
 
     Returns dict of arrays, all with leading shape (n, m):
-        'vinf_dep' (km/s), 'vinf_arr' (km/s), 'c3' (km^2/s^2), 'vinf_dep_vec' (n, m, 3), ecliptic frame
+        'vinf_dep' (km/s), 'vinf_arr' (km/s), 'c3' (km^2/s^2), 'vinf_dep_vec' (n, m, 3), ecliptic frame, 
+        'n_revs' (n, m): 0 or 1, which revolution count won
     """
     n, m = len(tof_days), len(dep_mjd)
 
@@ -49,15 +50,27 @@ def porkchop_grid(dep_mjd, tof_days, earth_state, target_state, mu: float = MU_S
     vinf_dep = np.full((n, m), np.nan)
     vinf_arr = np.full((n, m), np.nan)  # same shape
     vinf_dep_vec = np.full((n, m, 3), np.nan)   # a 3-vector at every grid point
+    n_revs = np.full((n, m), -1)                # which revolution count won at each point (-1 = none yet)
 
     for i, tof in enumerate(tof_days):                  # rows
         for j, dep in enumerate(dep_mjd):               # columns
             r1, v_earth = earth_state(dep)
             r2, v_target = target_state(dep + tof)                       # the asteroid's state at ARRIVAL
-            v1, v2 = lambert.solve(mu, r1, r2, tof * SECONDS_PER_DAY)    # TOF in SECONDS
-            vinf_dep_vec[i, j] = v1 - v_earth                            # spacecraft velocity minus Earth's
-            vinf_dep[i, j] = np.linalg.norm(vinf_dep_vec[i, j])          # its magnitude
-            vinf_arr[i, j] = np.linalg.norm(v2 - v_target)               # |v2 - v_target|
 
-    return {"vinf_dep": vinf_dep, "vinf_arr": vinf_arr,
-           "c3": vinf_dep**2, "vinf_dep_vec": vinf_dep_vec}
+            dt = tof * SECONDS_PER_DAY
+            candidates = [lambert.solve(mu, r1, r2, dt)] + lambert.solve_multirev(mu, r1, r2, dt, revs=1)
+            revs_of = [0] + [1] * (len(candidates) - 1)     # label each candidate with its rev count
+
+            best_total = np.inf
+            for (v1, v2), k in zip(candidates, revs_of):    # walks both lists side by side, so each pass gives you one solution and its label together
+                vd = v1 - v_earth                           # departure v-infinity vector
+                total = np.linalg.norm(vd) + np.linalg.norm(v2 - v_target)
+                if total < best_total:                      # NaN < anything is False, so failed solves are skipped
+                    best_total = total
+                    vinf_dep_vec[i, j] = vd
+                    vinf_dep[i, j] = np.linalg.norm(vd)
+                    vinf_arr[i, j] = np.linalg.norm(v2 - v_target)
+                    n_revs[i, j] = k
+
+    return {"vinf_dep": vinf_dep, "vinf_arr": vinf_arr, "c3": vinf_dep**2, 
+            "vinf_dep_vec": vinf_dep_vec, "n_revs": n_revs}
